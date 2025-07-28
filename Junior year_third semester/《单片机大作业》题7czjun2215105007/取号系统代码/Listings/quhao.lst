@@ -1,0 +1,299 @@
+C51 COMPILER V9.60.0.0   QUHAO                                                             07/17/2025 03:50:00 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE QUHAO
+OBJECT MODULE PLACED IN .\Objects\quhao.obj
+COMPILER INVOKED BY: E:\Keil_v5\C51\BIN\C51.EXE quhao.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\quh
+                    -ao.lst) TABS(2) OBJECT(.\Objects\quhao.obj)
+
+line level    source
+
+   1          #include <reg51.h>       //51单片机核心头文件
+   2          #include <intrins.h>     //包含内部函数
+   3          #define uchar unsigned char  //宏定义无符号字符型
+   4          #define uint unsigned int   //宏定义无符号整型
+   5          
+   6          
+   7          static uint last_qhao = 0;
+   8          
+   9          // 普中开发板适配后引脚定义
+  10          sbit RS=P2^6;      // LCD RS接P2^6
+  11          sbit RW=P2^5;      // LCD RW接P2^5
+  12          sbit E=P2^7;       // LCD E接P2^7
+  13          sbit K1=P3^2;      // 取号键K1接P3^2（普中独立按键1）
+  14          sbit K2=P3^3;      // 查询键K2接P3^3（普中独立按键2）
+  15           
+  16          sbit P3_0 = P3^0;    //串行口
+  17          sbit P3_1 = P3^1;    // 
+  18          
+  19          uint m=0,i=0;  //循环变量
+  20          //LCD显示字符串（初始及提示信息）
+  21          uchar data test[]="Please Take K3!";             //初始化显示"Welcome!"
+  22          uchar data prompt1[]="Your No.is 00!";    //取号成功提示（"Your No.is XX!"）
+  23          uchar data prompt8[]="00 is left";        //等待人数提示（"XX is left"）
+  24          uchar data prompt4[]="The queue is";      //队列满提示第一行
+  25          uchar data prompt5[]="full,please wait";  //队列满提示第二行
+  26          
+  27          //系统核心变量
+  28          unsigned  qhao=1;  //取号总数（从1开始，每取一次+1）
+  29          uint dhao=1;           //等待人数（qhao - jhao）
+  30          uint jhao=0;           //已叫号数（从叫号机通过串口接收）
+  31          
+  32          
+  33          /**
+  34           * 串口初始化函数（与叫号机通信，同步数据）
+  35           * 说明：配置同叫号机，确保波特率和工作方式一致（才能正常通信）
+  36           */
+  37          void intCon() 
+  38          {  
+  39   1          EA=0;         //关闭总中断（查询方式处理串口）
+  40   1          SCON=0x50;    //0101 0000：工作方式1（10位异步收发），允许接收
+  41   1          PCON=0X00;    //SMOD=0（波特率不加倍）
+  42   1          TMOD=0x20;    //定时器1方式2（自动重装载，产生波特率）
+  43   1          TH1=0xfd;     //9600波特率初值（同叫号机，确保通信一致）
+  44   1          TL1=0xfd;  
+  45   1          TR1=1;        //启动定时器1（产生波特率）
+  46   1          P3_0=1;
+  47   1          P3_1=1;
+  48   1      } 
+  49          
+  50          /**
+  51           * 短延时函数（用于按键防抖）
+  52           * @param n：延时倍数
+  53           */
+  54          void delay(int n)   
+C51 COMPILER V9.60.0.0   QUHAO                                                             07/17/2025 03:50:00 PAGE 2   
+
+  55          { 
+  56   1          int k,j;   
+  57   1          for(k=0;k<=n;k++)   
+  58   1              for(j=0;j<=10;j++); 
+  59   1      } 
+  60          
+  61          /**
+  62           * 长延时函数（用于状态保持）
+  63           * @param n：延时倍数
+  64           */
+  65          void delay1s(int n)   
+  66          {
+  67   1          int k,j;   
+  68   1          for(k=0;k<=n;k++)   
+  69   1              for(j=0;j<=120;j++); 
+  70   1      }       
+  71          
+  72          
+  73          /**************LCD1602相关函数（同叫号机，复用逻辑）**********/
+  74          
+  75          /**
+  76           * 毫秒级延时（用于LCD时序）
+  77           * @param ms：延时毫秒数
+  78           */
+  79          void delay1ms(unsigned int ms)   
+  80          { 
+  81   1          uint k,j;  
+  82   1          for(k=0;k<ms;k++)   
+  83   1              for(j=0;j<100;j++); 
+  84   1      }
+  85          
+  86          /**
+  87           * 向LCD写入指令
+  88           * @param com：指令代码
+  89           */
+  90          void LCD_w_com(unsigned com)  
+  91          {  
+  92   1          RW=0;  
+  93   1          RS=0;
+  94   1          E=1;  
+  95   1          P0=com; 
+  96   1          delay1ms(40);  
+  97   1          E=0; 
+  98   1          RW=1;
+  99   1      } 
+ 100          
+ 101          /**
+ 102           * 向LCD写入数据（显示字符）
+ 103           * @param dat：字符ASCII码
+ 104           */
+ 105          void LCD_w_dat(uchar dat)   
+ 106          { 
+ 107   1          RW=0; 
+ 108   1          RS=1;  
+ 109   1          E=1; 
+ 110   1          P0=dat; 
+ 111   1          delay1ms(40); 
+ 112   1          E=0;  
+ 113   1          RW=1; 
+ 114   1      }  
+ 115          
+ 116          /**
+C51 COMPILER V9.60.0.0   QUHAO                                                             07/17/2025 03:50:00 PAGE 3   
+
+ 117           * 设置LCD光标位置
+ 118           * @param x：行号（1/2）；@param y：列号（0-15）
+ 119           */
+ 120          void gotoxy(unsigned x,unsigned y)  
+ 121          {  
+ 122   1          if(x==1)  
+ 123   1              LCD_w_com(0x80 + y); 
+ 124   1          else 
+ 125   1              LCD_w_com(0xC0 + y); 
+ 126   1      } 
+ 127          
+ 128          /**
+ 129           * 清空LCD显示
+ 130           */
+ 131          void clear_LCD(void) 
+ 132          { 
+ 133   1          LCD_w_com(0x01);  //清屏
+ 134   1          LCD_w_com(0x02);  //光标归位
+ 135   1      } 
+ 136          
+ 137          /**
+ 138           * 初始化LCD1602
+ 139           */
+ 140          void init_LCD(void)      
+ 141          {  
+ 142   1          LCD_w_com(0x38);  //16x2显示，8位接口
+ 143   1          LCD_w_com(0x0c);  //显示开，光标关
+ 144   1          LCD_w_com(0x06);  //光标自动右移
+ 145   1          gotoxy(1,0);      //定位第一行
+ 146   1          //显示初始化欢迎语"Welcome!"
+ 147   1          for(i=0;i<=14;i++)  
+ 148   1          {  
+ 149   2              LCD_w_dat(test[i]); 
+ 150   2          } 
+ 151   1      } 
+ 152          
+ 153          
+ 154          /**
+ 155           * 取号键处理函数（K1按下时执行）
+ 156           * 功能：生成新号码，显示取号结果，超过上限提示队列满
+ 157           */
+ 158          void panduan_01()   
+ 159          {  
+ 160   1          if(K1 == 0)          //检测到K1按下
+ 161   1          {  
+ 162   2              delay(10);       //10ms防抖（避免抖动误判）
+ 163   2              if(K1 == 0)      //再次检测，确认按下
+ 164   2              {    
+ 165   3                  //判断取号数是否超过上限（99，避免两位数溢出）
+ 166   3                  if(qhao > 99)  
+ 167   3                  {
+ 168   4                      EA=0;    //关闭中断（备用）
+ 169   4                      delay1s(5000);  //延时保持显示
+ 170   4                      clear_LCD();    //清屏
+ 171   4                      gotoxy(1,2);    //第一行第3列（居中显示）
+ 172   4                      //显示队列满提示第一行"The queue is"
+ 173   4                      for(m=0;m<=11;m++)   
+ 174   4                      {    
+ 175   5                          LCD_w_dat(prompt4[m]);      
+ 176   5                      }    
+ 177   4                      gotoxy(2,0);    //第二行
+ 178   4                      //显示队列满提示第二行"full,please wait"
+C51 COMPILER V9.60.0.0   QUHAO                                                             07/17/2025 03:50:00 PAGE 4   
+
+ 179   4                      for(m=0;m<=15;m++)   
+ 180   4                      {    
+ 181   5                          LCD_w_dat(prompt5[m]);      
+ 182   5                      }     
+ 183   4                  }   
+ 184   3                  else  //未超过上限，正常取号
+ 185   3                  {
+ 186   4                      clear_LCD();     //清屏
+ 187   4                      //更新取号提示的号码（"Your No.is XX!"）
+ 188   4                      prompt1[11] = (qhao)/10 + '0';  //十位
+ 189   4                      prompt1[12] = (qhao)%10 + '0';  //个位
+ 190   4                      qhao++;        //取号数+1（下一个人取号用）
+ 191   4                      gotoxy(1,0);   //定位第一行
+ 192   4                      //显示取号结果（"Your No.is XX!"）
+ 193   4                      for(m=0;m<=13;m++)   
+ 194   4                      {   
+ 195   5                          LCD_w_dat(prompt1[m]); 
+ 196   5                      }   
+ 197   4                  } 
+ 198   3                  //计算等待人数（当前取号数 - 已叫号数）
+ 199   3                  dhao = qhao - jhao;    
+ 200   3                  //显示等待人数（当前取号者前面的等待人数）
+ 201   3                  prompt8[0] = (dhao - 1)/10 + '0';  //十位
+ 202   3                  prompt8[1] = (dhao - 1)%10 + '0';  //个位
+ 203   3                  gotoxy(2,0);                       //定位第二行
+ 204   3                  for(m=0;m<=9;m++)                  //显示"XX is left"
+ 205   3                  {  
+ 206   4                      LCD_w_dat(prompt8[m]);     
+ 207   4                  } 
+ 208   3              }
+ 209   2          }
+ 210   1          while(K1 == 0);  //等待按键松开（避免长按重复触发）
+ 211   1      }
+ 212          
+ 213          
+ 214          
+ 215          /**
+ 216           * 查询键处理函数（K2按下时执行）
+ 217           * 功能：显示当前等待人数（取号总数 - 已叫号数）
+ 218           */
+ 219          void panduan_02() 
+ 220          {   
+ 221   1          if(K2 == 0)      //检测到K2按下
+ 222   1          {  
+ 223   2              delay(10);   //10ms防抖
+ 224   2              if(K2 == 0)  //确认按下
+ 225   2              { 
+ 226   3                  dhao = qhao - jhao;    //计算等待人数
+ 227   3                  clear_LCD();           //清屏
+ 228   3                  //更新等待人数显示
+ 229   3                  prompt8[0] = dhao / 10 + '0';  //十位
+ 230   3                  prompt8[1] = dhao % 10 + '0';  //个位
+ 231   3                  gotoxy(2,0);                  //定位第二行
+ 232   3                  for(m=0;m<=9;m++)             //显示"XX is left"
+ 233   3                  {  
+ 234   4                      LCD_w_dat(prompt8[m]);     
+ 235   4                  }    
+ 236   3              }  
+ 237   2          }   
+ 238   1      }  
+ 239          
+ 240          
+C51 COMPILER V9.60.0.0   QUHAO                                                             07/17/2025 03:50:00 PAGE 5   
+
+ 241          /**
+ 242           * 主函数（系统入口）
+ 243           * 功能：初始化硬件，循环检测按键和串口数据
+ 244           */
+ 245          void main(void) 
+ 246          { 
+ 247   1        
+ 248   1          clear_LCD();       //初始化清屏
+ 249   1          init_LCD();        //初始化LCD
+ 250   1          intCon();          //初始化串口（与叫号机通信）
+ 251   1          jhao = 0;          //初始化已叫号数为0
+ 252   1          while(1) {
+ 253   2          if (K1==0) panduan_01();
+ 254   2          // 只有新号时才发
+ 255   2          if (qhao != last_qhao) {
+ 256   3              last_qhao = qhao;
+ 257   3              SBUF = qhao;
+ 258   3              while(!TI);
+ 259   3              TI = 0;
+ 260   3              }
+ 261   2          if (RI) {
+ 262   3              RI = 0;
+ 263   3              jhao = SBUF;
+ 264   3          }
+ 265   2          if (K2==0) panduan_02();
+ 266   2        }
+ 267   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    697    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     84    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

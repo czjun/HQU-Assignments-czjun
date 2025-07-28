@@ -1,0 +1,482 @@
+C51 COMPILER V9.60.0.0   JIAOHAO                                                           07/17/2025 04:14:57 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE JIAOHAO
+OBJECT MODULE PLACED IN .\Objects\jiaohao.obj
+COMPILER INVOKED BY: E:\Keil_v5\C51\BIN\C51.EXE jiaohao.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\j
+                    -iaohao.lst) TABS(2) OBJECT(.\Objects\jiaohao.obj)
+
+line level    source
+
+   1          #include <reg51.h>       //51单片机核心头文件，包含寄存器定义
+   2          #include <intrins.h>     //包含_nop_等内部函数（本代码未直接使用）
+   3          #define uchar unsigned char  //宏定义：uchar代替unsigned char（无符号字符型）
+   4          #define uint unsigned int   //宏定义：uint代替unsigned int（无符号整型）
+   5          
+   6          
+   7          
+   8          // 普中开发板适配后引脚定义
+   9          sbit RS=P2^6;      // LCD RS接P2^6（普中LCD控制口）
+  10          sbit RW=P2^5;      // LCD RW接P2^5
+  11          sbit E=P2^7;       // LCD E接P2^7
+  12          
+  13          // 矩阵键盘
+  14          sbit P1_0 = P1^0;    // 行1
+  15          sbit P1_1 = P1^1;    // 行2
+  16          sbit P1_2 = P1^2;    // 行3
+  17          sbit P1_3 = P1^3;    // 行4
+  18          sbit P1_4 = P1^4;    // 列1
+  19          sbit P1_5 = P1^5;    // 列2
+  20          sbit P1_6 = P1^6;    // 列3
+  21          sbit P1_7 = P1^7;    // 列4
+  22          
+  23          sbit P3_0 = P3^0;    //串行口
+  24          sbit P3_1 = P3^1;    // 
+  25          
+  26          sbit BEEP=P2^5;    // 蜂鸣器接P2^5（普中开发板蜂鸣器引脚）
+  27          static uchar last_jhao = 0;
+  28          static uchar last_qhao_rcv = 0;  // 上次接收的取号
+  29          //系统变量定义
+  30          uchar sev=0;      //总叫号计数（备用） 
+  31          uchar sev1=0;     //1号窗口叫号计数
+  32          uchar sev2=0;     //2号窗口叫号计数
+  33          uchar sev3=0;     //3号窗口叫号计数
+  34          uchar sev4=0;     //4号窗口叫号计数
+  35          uchar m=0,i=0;    //循环变量
+  36          uchar jhao=0;     //当前叫到的号码（初始为1）
+  37          uchar qhao=0;     //取号总数（从取号机通过串口接收）
+  38          uchar dhao=0;     //等待人数（qhao - jhao）
+  39          uchar jz=0;       //当前叫号的窗口（1-4）
+  40          uchar c=0;
+  41          //LCD显示字符串定义（初始及提示信息）
+  42          uchar data test[]="Hello!";                    //LCD初始化显示字符
+  43          uchar data prompt2[]="No.00 come to No";      //叫号提示第一行（"No.XX come to No"）
+  44          uchar data prompt3[]="0.window,Please!";      //叫号提示第二行（"X.window,Please!"）
+  45          uchar data prompt8[]="00 is left";            //等待人数提示（"XX is left"）
+  46          uchar data prompt9[]="All is 00";             //总取号数提示（"All is XX"）
+  47          uchar data prompt10[]="W1 - 00";              //1号窗口叫号记录
+  48          uchar data prompt11[]="W2 - 00";              //2号窗口叫号记录
+  49          uchar data prompt12[]="W3 - 00";              //3号窗口叫号记录
+  50          uchar data prompt13[]="W4 - 00";              //4号窗口叫号记录
+  51          
+  52          
+  53          /**
+  54           * 串口初始化函数（用于与取号机通信，同步取号数和叫号数）
+C51 COMPILER V9.60.0.0   JIAOHAO                                                           07/17/2025 04:14:57 PAGE 2   
+
+  55           */
+  56          void intCon()  
+  57          {    
+  58   1          EA=0;        //关闭总中断（暂不使用中断，仅用查询方式处理串口）
+  59   1          //串口控制寄存器配置（工作方式1，允许接收）
+  60   1          SCON=0x50;   //0101 0000：SM0=0,SM1=1（工作方式1，10位异步收发：8位数据+起始/停止位）
+  61   1          PCON=0X00;   //电源控制寄存器：SMOD=0（波特率不加倍）
+  62   1          //定时器1配置（用于产生串口波特率）
+  63   1          TMOD=0x20;   //0010 0000：定时器1工作在方式2（8位自动重装载，稳定产生波特率）
+  64   1                        //波特率9600计算：11.0592MHz晶振下，方式2波特率=晶振频率/(32*12*(256-TH1))
+  65   1          TH1=0xfd;    //装入初值（9600波特率对应初值：0xfd）
+  66   1          TL1=0xfd;    //方式2下TL1溢出后自动重载TH1的值
+  67   1          TR1=1;       //启动定时器1（开始产生波特率）
+  68   1          P3_0=1;
+  69   1          P3_1=1;
+  70   1      } 
+  71          
+  72          /**
+  73           * 短延时函数（用于按键防抖、简单等待）
+  74           * @param n：延时倍数（n越大，延时越长）
+  75           */
+  76          void delay(int n)       
+  77          { 
+  78   1          int k,j;  
+  79   1          for(k=0;k<=n;k++)  
+  80   1              for(j=0;j<=10;j++);  //内层循环约10次，整体延时较短
+  81   1      } 
+  82          
+  83          /**
+  84           * 较长延时函数（用于状态保持显示）
+  85           * @param n：延时倍数
+  86           */
+  87          void delay1s(int n)     
+  88          { 
+  89   1          int k,j;  
+  90   1          for(k=0;k<=n;k++)  
+  91   1              for(j=0;j<=120;j++);  //比delay延时更长
+  92   1      }  
+  93          
+  94          /**
+  95           * 蜂鸣器发声函数（叫号时提示）
+  96           * @param x：延时参数（控制频率，x越小频率越高）
+  97           */
+  98          void SPEAKER(uint x)   
+  99          {   
+ 100   1          for(i=0;i<=200;i++)    //发声200次（控制发声时长）
+ 101   1          {        
+ 102   2              delay(x);          //延时控制周期
+ 103   2              BEEP=~BEEP;        //蜂鸣器引脚电平翻转（产生方波发声）
+ 104   2          }     
+ 105   1          BEEP=1;                //发声结束后关闭蜂鸣器（高电平不发声）
+ 106   1      }
+ 107          
+ 108          
+ 109          /**************LCD1602显示相关函数**********/
+ 110          
+ 111          /**
+ 112           * 毫秒级延时函数（用于LCD操作时序，满足LCD响应时间）
+ 113           * @param ms：延时毫秒数（约为实际毫秒数）
+ 114           */
+ 115          void delay1ms(unsigned int ms)   
+ 116          { 
+C51 COMPILER V9.60.0.0   JIAOHAO                                                           07/17/2025 04:14:57 PAGE 3   
+
+ 117   1          uint k,j;  
+ 118   1          for(k=0;k<ms;k++)   
+ 119   1              for(j=0;j<100;j++);  //循环约100次，单次约10us，整体约1ms
+ 120   1      }
+ 121          
+ 122          /**
+ 123           * 向LCD写入指令（配置LCD工作模式）
+ 124           * @param com：指令代码（如清屏、设置显示模式等）
+ 125           */
+ 126          void LCD_w_com(unsigned com)  
+ 127          {  
+ 128   1          RW=0;          //RW=0：写入操作
+ 129   1          RS=0;          //RS=0：写入指令
+ 130   1          E=1;           //E=1：使能信号有效（LCD读取数据）
+ 131   1          P0=com;        //P0口输出指令代码
+ 132   1          delay1ms(40);  //等待LCD响应（至少需几十us）
+ 133   1          E=0;           //E=0：结束写入
+ 134   1          RW=1;          //恢复RW为1（空闲状态）
+ 135   1      } 
+ 136          
+ 137          /**
+ 138           * 向LCD写入数据（显示字符）
+ 139           * @param dat：要显示的字符（ASCII码）
+ 140           */
+ 141          void LCD_w_dat(uchar dat)   
+ 142          { 
+ 143   1          RW=0;          //RW=0：写入操作
+ 144   1          RS=1;          //RS=1：写入数据
+ 145   1          E=1;           //E=1：使能信号有效
+ 146   1          P0=dat;        //P0口输出字符数据
+ 147   1          delay1ms(40);  //等待LCD响应
+ 148   1          E=0;           //结束写入
+ 149   1          RW=1;          //恢复空闲状态
+ 150   1      }  
+ 151          
+ 152          /**
+ 153           * 设置LCD光标位置
+ 154           * @param x：行号（1：第一行；2：第二行）
+ 155           * @param y：列号（0-15：对应16列）
+ 156           */
+ 157          void gotoxy(unsigned x,unsigned y)  
+ 158          {  
+ 159   1          if(x==1)                  //第一行起始地址为0x80
+ 160   1              LCD_w_com(0x80 + y);  //0x80 | 列号（如0x80+0表示第一行第1列）
+ 161   1          else                      //第二行起始地址为0xC0
+ 162   1              LCD_w_com(0xC0 + y);  //0xC0 | 列号（如0xC0+0表示第二行第1列）
+ 163   1      } 
+ 164          
+ 165          /**
+ 166           * 清空LCD显示并将光标归位
+ 167           */
+ 168          void clear_LCD(void) 
+ 169          { 
+ 170   1          LCD_w_com(0x01);  //清屏指令（0x01：清除所有显示）
+ 171   1          LCD_w_com(0x02);  //光标归位指令（0x02：光标回到初始位置）
+ 172   1      } 
+ 173          
+ 174          /**
+ 175           * 初始化LCD1602（设置显示模式、开关等）
+ 176           */
+ 177          void init_LCD(void)      
+ 178          {  
+C51 COMPILER V9.60.0.0   JIAOHAO                                                           07/17/2025 04:14:57 PAGE 4   
+
+ 179   1          LCD_w_com(0x38);  //0x38：设置16x2显示（2行，每行16字符），8位数据接口
+ 180   1          LCD_w_com(0x0c);  //0x0c：显示开，光标关（0x0c=00001100：D=1显示开，C=0光标关）
+ 181   1          LCD_w_com(0x06);  //0x06：光标自动右移，屏幕不滚动（输入方式设置）
+ 182   1          gotoxy(1,0);      //定位到第一行第1列
+ 183   1          //显示初始化字符"Hello!"
+ 184   1          for(i=0;i<=5;i++)  
+ 185   1          {  
+ 186   2              LCD_w_dat(test[i]); 
+ 187   2          } 
+ 188   1      } 
+ 189          
+ 190          
+ 191          /*********叫号核心逻辑函数*********/
+ 192          
+ 193          /**
+ 194           * 叫号处理函数（当窗口按键按下时，执行叫号逻辑）
+ 195           * 功能：更新叫号信息、LCD显示、蜂鸣提示
+ 196           */
+ 197          void key()
+ 198          {         
+ 199   1          //只有当取号数大于当前叫号数时，才能叫号（避免叫号超过取号）
+ 200   1          if(qhao > jhao)     
+ 201   1          {       
+ 202   2              SPEAKER(11);    //蜂鸣器短鸣（提示叫号）
+ 203   2              delay(200);     
+ 204   2              SPEAKER(15);    //蜂鸣器再鸣一次（不同频率）
+ 205   2              clear_LCD();    //清屏准备显示新叫号信息
+ 206   2      
+ 207   2              sev++;          //总叫号计数+1
+ 208   2              //更新叫号提示第一行的号码（"No.XX..."）
+ 209   2              prompt2[3] = (jhao + 1)/10 + '0';  //十位数字（如12的十位是1）
+ 210   2              prompt2[4] = (jhao + 1)%10 + '0';  //个位数字（如12的个位是2）
+ 211   2              //更新叫号提示第二行的窗口号（"X.window..."）
+ 212   2              prompt3[0] = jz + '0';             //窗口号（1-4）
+ 213   2              //显示第一行提示
+ 214   2              gotoxy(1,0);      
+ 215   2              for(m=0;m<=15;m++)      //prompt2共16个字符（填满第一行）
+ 216   2              {      
+ 217   3                  LCD_w_dat(prompt2[m]);      
+ 218   3              }      
+ 219   2              //显示第二行提示
+ 220   2              gotoxy(2,0);      
+ 221   2              for(m=0;m<=15;m++)     //prompt3共16个字符（填满第二行）
+ 222   2              {
+ 223   3                  LCD_w_dat(prompt3[m]);     
+ 224   3              }         
+ 225   2              jhao++;  //当前叫号数+1（完成一次叫号）
+ 226   2          }
+ 227   1      }
+ 228          
+ 229          /**
+ 230           * 显示等待人数函数（对应某个按键，按下时显示当前等待人数）
+ 231           */
+ 232          void k5()
+ 233          {
+ 234   1          clear_LCD();                  //清屏
+ 235   1          dhao = qhao - jhao;           //等待人数=总取号数-已叫号数
+ 236   1          prompt8[0] = dhao / 10 + '0'; //等待人数十位
+ 237   1          prompt8[1] = dhao % 10 + '0'; //等待人数个位
+ 238   1          gotoxy(1,0);                  //定位第一行
+ 239   1          for(m=0;m<=9;m++)             //显示"XX is left"（共10个字符）
+ 240   1          {  
+C51 COMPILER V9.60.0.0   JIAOHAO                                                           07/17/2025 04:14:57 PAGE 5   
+
+ 241   2              LCD_w_dat(prompt8[m]);     
+ 242   2          }       
+ 243   1      }
+ 244          
+ 245          /**
+ 246           * 显示总取号数函数（对应某个按键，按下时显示总取号数）
+ 247           */
+ 248          void k6()
+ 249          {     
+ 250   1          clear_LCD();                  //清屏
+ 251   1          prompt9[7] = sev / 10 + '0';  //总叫号数十位
+ 252   1          prompt9[8] = sev % 10 + '0';  //总叫号数个位
+ 253   1          gotoxy(1,0);                  //定位第一行
+ 254   1          for(m=0;m<=8;m++)             //显示"All is XX"（共9个字符）
+ 255   1          {   
+ 256   2              LCD_w_dat(prompt9[m]); 
+ 257   2          }  
+ 258   1      }
+ 259          
+ 260          /**
+ 261           * 显示各窗口叫号记录函数（对应某个按键，按下时显示4个窗口的叫号数）
+ 262           */
+ 263          void k7()
+ 264          {
+ 265   1          clear_LCD();                  //清屏
+ 266   1          //更新各窗口叫号记录的显示（"W1 - XX"等）
+ 267   1          prompt10[5] = sev1 / 10 + '0';    
+ 268   1          prompt10[6] = sev1 % 10 + '0';    
+ 269   1          prompt11[5] = sev2 / 10 + '0';    
+ 270   1          prompt11[6] = sev2 % 10 + '0';    
+ 271   1          prompt12[5] = sev3 / 10 + '0';    
+ 272   1          prompt12[6] = sev3 % 10 + '0';    
+ 273   1          prompt13[5] = sev4 / 10 + '0';    
+ 274   1          prompt13[6] = sev4 % 10 + '0';     
+ 275   1          //第一行显示W1和W2（分列显示，避免重叠）
+ 276   1          gotoxy(1,0);                     //第一行第1列
+ 277   1          for(m=0;m<=6;m++)                //显示"W1 - XX"（7个字符）
+ 278   1          {    
+ 279   2              LCD_w_dat(prompt10[m]);    
+ 280   2          }        
+ 281   1          gotoxy(1,8);                     //第一行第9列（留出间隔）
+ 282   1          for(m=0;m<=6;m++)                //显示"W2 - XX"
+ 283   1          {    
+ 284   2              LCD_w_dat(prompt11[m]);    
+ 285   2          }    
+ 286   1          //第二行显示W3和W4
+ 287   1          gotoxy(2,0);                     //第二行第1列
+ 288   1          for(m=0;m<=6;m++)                //显示"W3 - XX"
+ 289   1          {    
+ 290   2              LCD_w_dat(prompt12[m]);    
+ 291   2          } 
+ 292   1          gotoxy(2,8);                     //第二行第9列
+ 293   1          for(m=0;m<=6;m++)                //显示"W4 - XX"
+ 294   1          {    
+ 295   2              LCD_w_dat(prompt13[m]);    
+ 296   2          }    
+ 297   1      } 
+ 298          
+ 299          
+ 300          void matrixkeyscan()
+ 301          {
+ 302   1          unsigned char KeyNumber = 0;
+C51 COMPILER V9.60.0.0   JIAOHAO                                                           07/17/2025 04:14:57 PAGE 6   
+
+ 303   1          
+ 304   1          // 扫描第一列（P1.7置低）
+ 305   1          P1 = 0xFF;
+ 306   1          P1_7 = 0;
+ 307   1          
+ 308   1          if(P1_3 == 0)  {delay(20); while(P1_3 == 0); delay(20); KeyNumber = 1;}  // 1号窗口
+ 309   1          if(P1_2 == 0)  {delay(20); while(P1_2 == 0); delay(20); KeyNumber = 2;}  // 2号窗口
+ 310   1          if(P1_1 == 0)  {delay(20); while(P1_1 == 0); delay(20); KeyNumber = 3;}  // 3号窗口
+ 311   1          if(P1_0 == 0)  {delay(20); while(P1_0 == 0); delay(20); KeyNumber = 4;}  // 4号窗口
+ 312   1          
+ 313   1          // 扫描第二列（P1.6置低）
+ 314   1          P1 = 0xFF;
+ 315   1          P1_6 = 0;
+ 316   1          
+ 317   1          if(P1_3 == 0)  {delay(20); while(P1_3 == 0); delay(20); KeyNumber = 5;}  
+ 318   1          if(P1_2 == 0)  {delay(20); while(P1_2 == 0); delay(20); KeyNumber = 6;}  
+ 319   1          if(P1_1 == 0)  {delay(20); while(P1_1 == 0); delay(20); KeyNumber = 7;}  
+ 320   1          if(P1_0 == 0)  {delay(20); while(P1_0 == 0); delay(20); KeyNumber = 8;}  
+ 321   1          
+ 322   1          // 扫描第三列（P1.5置低）
+ 323   1          P1 = 0xFF;
+ 324   1          P1_5 = 0;
+ 325   1          
+ 326   1          if(P1_3 == 0)  {delay(20); while(P1_3 == 0); delay(20); KeyNumber = 9;}  
+ 327   1          if(P1_2 == 0)  {delay(20); while(P1_2 == 0); delay(20); KeyNumber = 10;} 
+ 328   1          if(P1_1 == 0)  {delay(20); while(P1_1 == 0); delay(20); KeyNumber = 11;} 
+ 329   1          if(P1_0 == 0)  {delay(20); while(P1_0 == 0); delay(20); KeyNumber = 12;} 
+ 330   1          
+ 331   1          // 扫描第四列（P1.4置低）
+ 332   1          P1 = 0xFF;
+ 333   1          P1_4 = 0;
+ 334   1          
+ 335   1          if(P1_3 == 0)  {delay(20); while(P1_3 == 0); delay(20); KeyNumber = 13;} 
+ 336   1          if(P1_2 == 0)  {delay(20); while(P1_2 == 0); delay(20); KeyNumber = 14;} 
+ 337   1          if(P1_1 == 0)  {delay(20); while(P1_1 == 0); delay(20); KeyNumber = 15;}  
+ 338   1          if(P1_0 == 0)  {delay(20); while(P1_0 == 0); delay(20); KeyNumber = 16;} 
+ 339   1          
+ 340   1          // 根据按键值执行对应操作
+ 341   1          switch(KeyNumber)
+ 342   1          {
+ 343   2              case 1: jz = 1; sev1++; key(); break;  // 1号窗口叫号
+ 344   2              case 2: jz = 2; sev2++; key(); break;  // 2号窗口叫号
+ 345   2              case 3: jz = 3; sev3++; key(); break;  // 3号窗口叫号
+ 346   2              case 4: jz = 4; sev4++; key(); break;  // 4号窗口叫号
+ 347   2              case 5: k7(); break;                  // 显示窗口记录
+ 348   2              case 6: k6(); break;                  // 显示总叫号数
+ 349   2              case 7: k5(); break;                  // 显示等待人数
+ 350   2              default: break;
+ 351   2          }
+ 352   1      }
+ 353          
+ 354           
+ 355          
+ 356          ///**
+ 357          // * 主函数（测试用）
+ 358          // * 功能：初始化硬件，循环检测按键和串口数据
+ 359          // **/
+ 360          //void main(void) {
+ 361          //    
+ 362          //    intCon();       // 初始化串口
+ 363          //    clear_LCD();      //初始化前清屏
+ 364          //    init_LCD();     // 初始化LCD
+C51 COMPILER V9.60.0.0   JIAOHAO                                                           07/17/2025 04:14:57 PAGE 7   
+
+ 365          //    jhao = 0;       // 当前叫号数初始化为0
+ 366          //    qhao = 0;       // 取号总数初始化为0
+ 367          //    
+ 368          //    // 初始显示
+ 369          //    gotoxy(1, 0);
+ 370          //    LCD_w_dat('S');
+ 371          //    LCD_w_dat(':');
+ 372          //    LCD_w_dat('0');
+ 373          //    LCD_w_dat('0');
+ 374          //    
+ 375          //    gotoxy(2, 0);
+ 376          //    LCD_w_dat('R');
+ 377          //    LCD_w_dat(':');
+ 378          //    LCD_w_dat('0');
+ 379          //    LCD_w_dat('0');
+ 380          
+ 381          //    while (1) {
+ 382          //        matrixkeyscan();    // 检测叫号按键
+ 383          
+ 384          //        // 仅当叫号数变化时才发送数据
+ 385          //        
+ 386          //        if (jhao != last_jhao) {
+ 387          //            last_jhao = jhao;
+ 388          //            
+ 389          //            // 更新显示
+ 390          //            gotoxy(1, 2);
+ 391          //            LCD_w_dat(jhao / 10 + '0');
+ 392          //            LCD_w_dat(jhao % 10 + '0');
+ 393          //            
+ 394          //            // 发送数据
+ 395          //            SBUF = jhao;     // 发送号码
+ 396          //            while (!TI);     // 等待发送完成
+ 397          //            TI = 0;          // 清除发送标志
+ 398          //        }
+ 399          
+ 400          //        // 接收数据（仅当RI=1时处理）
+ 401          //        if (RI) {
+ 402          //            RI = 0;          // 清除接收标志
+ 403          //            qhao = SBUF;     // 读取接收数据
+ 404          //            
+ 405          //            // 更新显示
+ 406          //            gotoxy(2, 2);
+ 407          //            LCD_w_dat(qhao / 10 + '0');
+ 408          //            LCD_w_dat(qhao % 10 + '0');
+ 409          //        }
+ 410          
+ 411          //        delay1ms(200); // 适当延时，
+ 412          //    }
+ 413          //}
+ 414          
+ 415          /**
+ 416           * 主函数（系统入口）
+ 417           * 功能：初始化硬件，循环检测按键和串口数据
+ 418           */
+ 419          void main() 
+ 420          { 
+ 421   1        
+ 422   1          intCon();
+ 423   1          clear_LCD();
+ 424   1          init_LCD();
+ 425   1          jhao = qhao = dhao = sev = sev1 = sev2 = sev3 = sev4 = 0;
+ 426   1          last_jhao = last_qhao_rcv = 0;
+C51 COMPILER V9.60.0.0   JIAOHAO                                                           07/17/2025 04:14:57 PAGE 8   
+
+ 427   1      
+ 428   1          while (1) {
+ 429   2              matrixkeyscan();
+ 430   2              if (jhao != last_jhao) {
+ 431   3                  last_jhao = jhao;
+ 432   3                  SBUF = jhao;
+ 433   3                  while(!TI); TI = 0;
+ 434   3              }
+ 435   2              if (RI) {
+ 436   3                  RI = 0;
+ 437   3                  c = SBUF;
+ 438   3                  if (c <= 99 && c >= last_qhao_rcv && c - last_qhao_rcv <= 20) {
+ 439   4                      qhao = c;
+ 440   4                      last_qhao_rcv = c;
+ 441   4                  }
+ 442   3              }
+ 443   2          }
+ 444   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1201    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =    108    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

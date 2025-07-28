@@ -1,0 +1,556 @@
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                    07/17/2025  04:14:57  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V6.22.2.0, INVOKED BY:
+E:\KEIL_V5\C51\BIN\BL51.EXE .\Objects\STARTUP.obj, .\Objects\jiaohao.obj TO .\Objects\jioahao PRINT (.\Listings\jioahao.
+>> m51)
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  .\Objects\STARTUP.obj (?C_STARTUP)
+  .\Objects\jiaohao.obj (JIAOHAO)
+  E:\KEIL_V5\C51\LIB\C51S.LIB (?C_INIT)
+  E:\KEIL_V5\C51\LIB\C51S.LIB (?C?UIDIV)
+
+
+LINK MAP OF MODULE:  .\Objects\jioahao (?C_STARTUP)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+            DATA    0008H     006CH     UNIT         ?DT?JIAOHAO
+            IDATA   0074H     0001H     UNIT         ?STACK
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0003H     ABSOLUTE     
+            CODE    0003H     014AH     UNIT         ?PR?MATRIXKEYSCAN?JIAOHAO
+            CODE    014DH     00DAH     UNIT         ?PR?K7?JIAOHAO
+            CODE    0227H     009BH     UNIT         ?C_INITSEG
+            CODE    02C2H     008CH     UNIT         ?C_C51STARTUP
+            CODE    034EH     0088H     UNIT         ?PR?KEY?JIAOHAO
+            CODE    03D6H     006AH     UNIT         ?PR?MAIN?JIAOHAO
+            CODE    0440H     0055H     UNIT         ?C?LIB_CODE
+            CODE    0495H     0039H     UNIT         ?PR?K5?JIAOHAO
+            CODE    04CEH     0035H     UNIT         ?PR?INIT_LCD?JIAOHAO
+            CODE    0503H     0034H     UNIT         ?PR?K6?JIAOHAO
+            CODE    0537H     002AH     UNIT         ?PR?_DELAY?JIAOHAO
+            CODE    0561H     0028H     UNIT         ?PR?_DELAY1MS?JIAOHAO
+            CODE    0589H     0026H     UNIT         ?PR?_DELAY1S?JIAOHAO
+            CODE    05AFH     0022H     UNIT         ?PR?_SPEAKER?JIAOHAO
+            CODE    05D1H     001CH     UNIT         ?PR?_GOTOXY?JIAOHAO
+            CODE    05EDH     0018H     UNIT         ?PR?INTCON?JIAOHAO
+            CODE    0605H     0011H     UNIT         ?PR?_LCD_W_DAT?JIAOHAO
+            CODE    0616H     000EH     UNIT         ?PR?CLEAR_LCD?JIAOHAO
+            CODE    0624H     000CH     UNIT         ?PR?_LCD_W_COM?JIAOHAO
+
+
+
+OVERLAY MAP OF MODULE:   .\Objects\jioahao (?C_STARTUP)
+
+
+SEGMENT
+  +--> CALLED SEGMENT
+---------------------
+?C_C51STARTUP
+  +--> ?PR?MAIN?JIAOHAO
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  07/17/2025  04:14:57  PAGE 2
+
+
+  +--> ?C_INITSEG
+
+?PR?MAIN?JIAOHAO
+  +--> ?PR?INTCON?JIAOHAO
+  +--> ?PR?CLEAR_LCD?JIAOHAO
+  +--> ?PR?INIT_LCD?JIAOHAO
+  +--> ?PR?MATRIXKEYSCAN?JIAOHAO
+
+?PR?CLEAR_LCD?JIAOHAO
+  +--> ?PR?_LCD_W_COM?JIAOHAO
+
+?PR?_LCD_W_COM?JIAOHAO
+  +--> ?PR?_DELAY1MS?JIAOHAO
+
+?PR?INIT_LCD?JIAOHAO
+  +--> ?PR?_LCD_W_COM?JIAOHAO
+  +--> ?PR?_GOTOXY?JIAOHAO
+  +--> ?PR?_LCD_W_DAT?JIAOHAO
+
+?PR?_GOTOXY?JIAOHAO
+  +--> ?PR?_LCD_W_COM?JIAOHAO
+
+?PR?_LCD_W_DAT?JIAOHAO
+  +--> ?PR?_DELAY1MS?JIAOHAO
+
+?PR?MATRIXKEYSCAN?JIAOHAO
+  +--> ?PR?_DELAY?JIAOHAO
+  +--> ?PR?KEY?JIAOHAO
+  +--> ?PR?K7?JIAOHAO
+  +--> ?PR?K6?JIAOHAO
+  +--> ?PR?K5?JIAOHAO
+
+?PR?KEY?JIAOHAO
+  +--> ?PR?_SPEAKER?JIAOHAO
+  +--> ?PR?_DELAY?JIAOHAO
+  +--> ?PR?CLEAR_LCD?JIAOHAO
+  +--> ?PR?_GOTOXY?JIAOHAO
+  +--> ?PR?_LCD_W_DAT?JIAOHAO
+
+?PR?_SPEAKER?JIAOHAO
+  +--> ?PR?_DELAY?JIAOHAO
+
+?PR?K7?JIAOHAO
+  +--> ?PR?CLEAR_LCD?JIAOHAO
+  +--> ?PR?_GOTOXY?JIAOHAO
+  +--> ?PR?_LCD_W_DAT?JIAOHAO
+
+?PR?K6?JIAOHAO
+  +--> ?PR?CLEAR_LCD?JIAOHAO
+  +--> ?PR?_GOTOXY?JIAOHAO
+  +--> ?PR?_LCD_W_DAT?JIAOHAO
+
+?PR?K5?JIAOHAO
+  +--> ?PR?CLEAR_LCD?JIAOHAO
+  +--> ?PR?_GOTOXY?JIAOHAO
+  +--> ?PR?_LCD_W_DAT?JIAOHAO
+
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  07/17/2025  04:14:57  PAGE 3
+
+
+
+
+SYMBOL TABLE OF MODULE:  .\Objects\jioahao (?C_STARTUP)
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+
+  -------         MODULE        ?C_STARTUP
+  C:02C2H         SEGMENT       ?C_C51STARTUP
+  I:0074H         SEGMENT       ?STACK
+  C:0000H         PUBLIC        ?C_STARTUP
+  D:00E0H         SYMBOL        ACC
+  D:00F0H         SYMBOL        B
+  D:0083H         SYMBOL        DPH
+  D:0082H         SYMBOL        DPL
+  N:0000H         SYMBOL        IBPSTACK
+  N:0100H         SYMBOL        IBPSTACKTOP
+  N:0080H         SYMBOL        IDATALEN
+  C:02C5H         SYMBOL        IDATALOOP
+  N:0000H         SYMBOL        PBPSTACK
+  N:0100H         SYMBOL        PBPSTACKTOP
+  N:0000H         SYMBOL        PDATALEN
+  N:0000H         SYMBOL        PDATASTART
+  N:0000H         SYMBOL        PPAGE
+  N:0000H         SYMBOL        PPAGEENABLE
+  D:00A0H         SYMBOL        PPAGE_SFR
+  D:0081H         SYMBOL        SP
+  C:02C2H         SYMBOL        STARTUP1
+  N:0000H         SYMBOL        XBPSTACK
+  N:0000H         SYMBOL        XBPSTACKTOP
+  N:0000H         SYMBOL        XDATALEN
+  N:0000H         SYMBOL        XDATASTART
+  C:0000H         LINE#         126
+  C:02C2H         LINE#         133
+  C:02C4H         LINE#         134
+  C:02C5H         LINE#         135
+  C:02C6H         LINE#         136
+  C:02C8H         LINE#         185
+  C:02CBH         LINE#         196
+  -------         ENDMOD        ?C_STARTUP
+
+  -------         MODULE        JIAOHAO
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  D:0080H         PUBLIC        P0
+  D:0008H         PUBLIC        sev1
+  D:0090H         PUBLIC        P1
+  D:0009H         PUBLIC        sev2
+  D:00A0H         PUBLIC        P2
+  D:000AH         PUBLIC        sev3
+  D:00B0H         PUBLIC        P3
+  D:000BH         PUBLIC        sev4
+  B:00A8H.7       PUBLIC        EA
+  D:000CH         PUBLIC        prompt10
+  D:0014H         PUBLIC        prompt11
+  D:001CH         PUBLIC        prompt12
+  D:0024H         PUBLIC        prompt13
+  C:0003H         PUBLIC        matrixkeyscan
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  07/17/2025  04:14:57  PAGE 4
+
+
+  C:05AFH         PUBLIC        _SPEAKER
+  B:0090H.0       PUBLIC        P1_0
+  C:053BH         PUBLIC        _delay
+  B:0090H.1       PUBLIC        P1_1
+  B:00B0H.0       PUBLIC        P3_0
+  B:0090H.2       PUBLIC        P1_2
+  B:00B0H.1       PUBLIC        P3_1
+  B:0090H.3       PUBLIC        P1_3
+  B:0090H.4       PUBLIC        P1_4
+  B:0090H.5       PUBLIC        P1_5
+  B:0090H.6       PUBLIC        P1_6
+  B:0090H.7       PUBLIC        P1_7
+  B:0098H.0       PUBLIC        RI
+  B:00A0H.5       PUBLIC        BEEP
+  B:0098H.1       PUBLIC        TI
+  D:002CH         PUBLIC        dhao
+  C:0495H         PUBLIC        k5
+  C:0503H         PUBLIC        k6
+  C:014DH         PUBLIC        k7
+  D:002DH         PUBLIC        jhao
+  C:0569H         PUBLIC        _delay1ms
+  B:00A0H.6       PUBLIC        RS
+  C:03D6H         PUBLIC        main
+  B:00A0H.5       PUBLIC        RW
+  D:002EH         PUBLIC        qhao
+  C:05D7H         PUBLIC        _gotoxy
+  D:0099H         PUBLIC        SBUF
+  D:0087H         PUBLIC        PCON
+  D:0098H         PUBLIC        SCON
+  D:0089H         PUBLIC        TMOD
+  C:0589H         PUBLIC        _delay1s
+  D:002FH         SYMBOL        last_jhao
+  C:0616H         PUBLIC        clear_LCD
+  D:0030H         PUBLIC        test
+  B:00A0H.7       PUBLIC        E
+  C:060AH         PUBLIC        _LCD_w_dat
+  C:034EH         PUBLIC        key
+  C:0624H         PUBLIC        _LCD_w_com
+  D:008DH         PUBLIC        TH1
+  D:0037H         PUBLIC        sev
+  D:008BH         PUBLIC        TL1
+  B:0088H.6       PUBLIC        TR1
+  D:0038H         PUBLIC        prompt2
+  D:0049H         PUBLIC        prompt3
+  D:005AH         PUBLIC        prompt8
+  D:0065H         PUBLIC        prompt9
+  D:006FH         PUBLIC        c
+  D:0070H         PUBLIC        jz
+  D:0071H         PUBLIC        i
+  C:04CEH         PUBLIC        init_LCD
+  D:0072H         PUBLIC        m
+  C:05EDH         PUBLIC        intCon
+  D:0073H         SYMBOL        last_qhao_rcv
+  -------         PROC          INTCON
+  C:05EDH         LINE#         56
+  C:05EDH         LINE#         57
+  C:05EDH         LINE#         58
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  07/17/2025  04:14:57  PAGE 5
+
+
+  C:05EFH         LINE#         60
+  C:05F2H         LINE#         61
+  C:05F5H         LINE#         63
+  C:05F8H         LINE#         65
+  C:05FBH         LINE#         66
+  C:05FEH         LINE#         67
+  C:0600H         LINE#         68
+  C:0602H         LINE#         69
+  C:0604H         LINE#         70
+  -------         ENDPROC       INTCON
+  C:0537H         SYMBOL        L?0145
+  -------         PROC          L?0144
+  -------         ENDPROC       L?0144
+  C:0537H         SYMBOL        L?0145
+  -------         PROC          _DELAY
+  D:0006H         SYMBOL        n
+  -------         DO            
+  D:0004H         SYMBOL        k
+  D:0002H         SYMBOL        j
+  -------         ENDDO         
+  C:053BH         LINE#         76
+  C:053BH         LINE#         77
+  C:053BH         LINE#         79
+  C:054BH         LINE#         80
+  C:0560H         LINE#         81
+  -------         ENDPROC       _DELAY
+  -------         PROC          _DELAY1S
+  D:0006H         SYMBOL        n
+  -------         DO            
+  D:0004H         SYMBOL        k
+  D:0002H         SYMBOL        j
+  -------         ENDDO         
+  C:0589H         LINE#         87
+  C:0589H         LINE#         88
+  C:0589H         LINE#         90
+  C:0599H         LINE#         91
+  C:05AEH         LINE#         92
+  -------         ENDPROC       _DELAY1S
+  -------         PROC          _SPEAKER
+  D:0082H         SYMBOL        x
+  C:05AFH         LINE#         98
+  C:05B3H         LINE#         99
+  C:05B3H         LINE#         100
+  C:05C1H         LINE#         101
+  C:05C1H         LINE#         102
+  C:05C8H         LINE#         103
+  C:05CAH         LINE#         104
+  C:05CEH         LINE#         105
+  C:05D0H         LINE#         106
+  -------         ENDPROC       _SPEAKER
+  -------         PROC          L?0151
+  -------         ENDPROC       L?0151
+  -------         PROC          _DELAY1MS
+  D:0006H         SYMBOL        ms
+  -------         DO            
+  D:0004H         SYMBOL        k
+  D:0002H         SYMBOL        j
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  07/17/2025  04:14:57  PAGE 6
+
+
+  -------         ENDDO         
+  C:0569H         LINE#         115
+  C:0569H         LINE#         116
+  C:0569H         LINE#         118
+  C:0573H         LINE#         119
+  C:0588H         LINE#         120
+  -------         ENDPROC       _DELAY1MS
+  -------         PROC          _LCD_W_COM
+  D:0006H         SYMBOL        com
+  C:0624H         LINE#         126
+  C:0624H         LINE#         127
+  C:0624H         LINE#         128
+  C:0626H         LINE#         129
+  C:0628H         LINE#         130
+  C:0628H         LINE#         131
+  C:0628H         LINE#         132
+  C:062BH         LINE#         133
+  C:062DH         LINE#         134
+  C:062FH         LINE#         135
+  -------         ENDPROC       _LCD_W_COM
+  C:0605H         SYMBOL        L?0147
+  -------         PROC          L?0146
+  -------         ENDPROC       L?0146
+  C:0605H         SYMBOL        L?0147
+  -------         PROC          _LCD_W_DAT
+  D:0007H         SYMBOL        dat
+  C:060AH         LINE#         141
+  C:060AH         LINE#         142
+  C:060AH         LINE#         143
+  C:060CH         LINE#         144
+  C:060EH         LINE#         145
+  C:060EH         LINE#         146
+  C:060EH         LINE#         147
+  C:0611H         LINE#         148
+  C:0613H         LINE#         149
+  C:0615H         LINE#         150
+  -------         ENDPROC       _LCD_W_DAT
+  C:05D1H         SYMBOL        L?0149
+  C:05D3H         SYMBOL        L?0150
+  -------         PROC          L?0148
+  -------         ENDPROC       L?0148
+  C:05D1H         SYMBOL        L?0149
+  C:05D3H         SYMBOL        L?0150
+  -------         PROC          _GOTOXY
+  D:0006H         SYMBOL        x
+  D:0004H         SYMBOL        y
+  C:05D7H         LINE#         157
+  C:05D7H         LINE#         158
+  C:05D7H         LINE#         159
+  C:05DDH         LINE#         160
+  C:05E2H         LINE#         162
+  C:05ECH         LINE#         163
+  -------         ENDPROC       _GOTOXY
+  -------         PROC          CLEAR_LCD
+  C:0616H         LINE#         168
+  C:0616H         LINE#         169
+  C:0616H         LINE#         170
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  07/17/2025  04:14:57  PAGE 7
+
+
+  C:061DH         LINE#         171
+  -------         ENDPROC       CLEAR_LCD
+  -------         PROC          INIT_LCD
+  C:04CEH         LINE#         177
+  C:04CEH         LINE#         178
+  C:04CEH         LINE#         179
+  C:04D5H         LINE#         180
+  C:04DCH         LINE#         181
+  C:04E3H         LINE#         182
+  C:04E6H         LINE#         184
+  C:04F4H         LINE#         185
+  C:04F4H         LINE#         186
+  C:04FEH         LINE#         187
+  C:0502H         LINE#         188
+  -------         ENDPROC       INIT_LCD
+  -------         PROC          KEY
+  C:034EH         LINE#         197
+  C:034EH         LINE#         198
+  C:034EH         LINE#         200
+  C:0358H         LINE#         201
+  C:0358H         LINE#         202
+  C:035FH         LINE#         203
+  C:0366H         LINE#         204
+  C:036BH         LINE#         205
+  C:036EH         LINE#         207
+  C:0370H         LINE#         209
+  C:0387H         LINE#         210
+  C:0397H         LINE#         212
+  C:039DH         LINE#         214
+  C:03A0H         LINE#         215
+  C:03AEH         LINE#         216
+  C:03AEH         LINE#         217
+  C:03B3H         LINE#         218
+  C:03B7H         LINE#         220
+  C:03BCH         LINE#         221
+  C:03CAH         LINE#         222
+  C:03CAH         LINE#         223
+  C:03CFH         LINE#         224
+  C:03D3H         LINE#         225
+  C:03D5H         LINE#         226
+  C:03D5H         LINE#         227
+  -------         ENDPROC       KEY
+  -------         PROC          K5
+  C:0495H         LINE#         232
+  C:0495H         LINE#         233
+  C:0495H         LINE#         234
+  C:0498H         LINE#         235
+  C:049FH         LINE#         236
+  C:04A7H         LINE#         237
+  C:04B3H         LINE#         238
+  C:04B6H         LINE#         239
+  C:04C4H         LINE#         240
+  C:04C4H         LINE#         241
+  C:04C9H         LINE#         242
+  C:04CDH         LINE#         243
+  -------         ENDPROC       K5
+  -------         PROC          K6
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  07/17/2025  04:14:57  PAGE 8
+
+
+  C:0503H         LINE#         248
+  C:0503H         LINE#         249
+  C:0503H         LINE#         250
+  C:0506H         LINE#         251
+  C:0510H         LINE#         252
+  C:051CH         LINE#         253
+  C:051FH         LINE#         254
+  C:052DH         LINE#         255
+  C:052DH         LINE#         256
+  C:0532H         LINE#         257
+  C:0536H         LINE#         258
+  -------         ENDPROC       K6
+  -------         PROC          K7
+  C:014DH         LINE#         263
+  C:014DH         LINE#         264
+  C:014DH         LINE#         265
+  C:0150H         LINE#         267
+  C:015AH         LINE#         268
+  C:0166H         LINE#         269
+  C:0170H         LINE#         270
+  C:017CH         LINE#         271
+  C:0186H         LINE#         272
+  C:0192H         LINE#         273
+  C:019CH         LINE#         274
+  C:01A8H         LINE#         276
+  C:01ABH         LINE#         277
+  C:01B9H         LINE#         278
+  C:01B9H         LINE#         279
+  C:01BEH         LINE#         280
+  C:01C2H         LINE#         281
+  C:01CDH         LINE#         282
+  C:01DBH         LINE#         283
+  C:01DBH         LINE#         284
+  C:01E0H         LINE#         285
+  C:01E4H         LINE#         287
+  C:01EDH         LINE#         288
+  C:01FBH         LINE#         289
+  C:01FBH         LINE#         290
+  C:0200H         LINE#         291
+  C:0204H         LINE#         292
+  C:020FH         LINE#         293
+  C:021DH         LINE#         294
+  C:021DH         LINE#         295
+  C:0222H         LINE#         296
+  C:0226H         LINE#         297
+  -------         ENDPROC       K7
+  -------         PROC          MATRIXKEYSCAN
+  -------         DO            
+  D:0001H         SYMBOL        KeyNumber
+  -------         ENDDO         
+  C:0003H         LINE#         300
+  C:0003H         LINE#         301
+  C:0003H         LINE#         302
+  C:0005H         LINE#         305
+  C:0008H         LINE#         306
+  C:000AH         LINE#         308
+  C:001BH         LINE#         309
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  07/17/2025  04:14:57  PAGE 9
+
+
+  C:0029H         LINE#         310
+  C:0037H         LINE#         311
+  C:0045H         LINE#         314
+  C:0048H         LINE#         315
+  C:004AH         LINE#         317
+  C:0058H         LINE#         318
+  C:0066H         LINE#         319
+  C:0074H         LINE#         320
+  C:0082H         LINE#         323
+  C:0085H         LINE#         324
+  C:0087H         LINE#         326
+  C:0095H         LINE#         327
+  C:00A3H         LINE#         328
+  C:00B1H         LINE#         329
+  C:00BFH         LINE#         332
+  C:00C2H         LINE#         333
+  C:00C4H         LINE#         335
+  C:00D2H         LINE#         336
+  C:00E0H         LINE#         337
+  C:00EEH         LINE#         338
+  C:00FCH         LINE#         341
+  C:0126H         LINE#         342
+  C:0126H         LINE#         343
+  C:012DH         LINE#         344
+  C:0134H         LINE#         345
+  C:013BH         LINE#         346
+  C:0143H         LINE#         347
+  C:0146H         LINE#         348
+  C:0149H         LINE#         349
+  C:014CH         LINE#         350
+  C:014CH         LINE#         351
+  C:014CH         LINE#         352
+  -------         ENDPROC       MATRIXKEYSCAN
+  -------         PROC          MAIN
+  C:03D6H         LINE#         419
+  C:03D6H         LINE#         420
+  C:03D6H         LINE#         422
+  C:03D9H         LINE#         423
+  C:03DCH         LINE#         424
+  C:03DFH         LINE#         425
+  C:03F0H         LINE#         426
+  C:03F4H         LINE#         428
+  C:03F4H         LINE#         429
+  C:03F7H         LINE#         430
+  C:03FDH         LINE#         431
+  C:0400H         LINE#         432
+  C:0403H         LINE#         433
+  C:0408H         LINE#         434
+  C:0408H         LINE#         435
+  C:040BH         LINE#         436
+  C:040DH         LINE#         437
+  C:0410H         LINE#         438
+  C:0438H         LINE#         439
+  C:043BH         LINE#         440
+  C:043EH         LINE#         441
+  C:043EH         LINE#         442
+  C:043EH         LINE#         443
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  07/17/2025  04:14:57  PAGE 10
+
+
+  -------         ENDPROC       MAIN
+  -------         ENDMOD        JIAOHAO
+
+  -------         MODULE        ?C?UIDIV
+  C:0440H         PUBLIC        ?C?UIDIV
+  -------         ENDMOD        ?C?UIDIV
+
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_DELAY1S?JIAOHAO
+
+Program Size: data=117.0 xdata=0 code=1584
+LINK/LOCATE RUN COMPLETE.  1 WARNING(S),  0 ERROR(S)

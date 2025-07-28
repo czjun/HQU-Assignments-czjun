@@ -1,0 +1,3 @@
+".\Objects\234.obj" 
+TO ".\Objects\lwm" 
+PRINT(".\Listings\lwm.m51")

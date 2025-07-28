@@ -1,0 +1,5 @@
+"main.obj",
+".\pwm.obj",
+".\Uart.obj" 
+TO "timer1" 
+RAMSIZE(256) 

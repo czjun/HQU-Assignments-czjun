@@ -1,0 +1,291 @@
+C51 COMPILER V9.60.0.0   JIAOHAO                                                           07/16/2025 23:55:53 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE JIAOHAO
+OBJECT MODULE PLACED IN .\Objects\jiaohao.obj
+COMPILER INVOKED BY: E:\Keil_v5\C51\BIN\C51.EXE jiaohao.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\j
+                    -iaohao.lst) TABS(2) OBJECT(.\Objects\jiaohao.obj)
+
+line level    source
+
+   1          #include <reg51.h>
+   2          #include <intrins.h>
+   3          #define uchar unsigned char 
+   4          #define uint unsigned int 
+   5          sbit RS=P2^0;     //1:Êý¾ÝÊäÈë,0:Ö¸ÁîÊäÈë 
+   6          sbit RW=P2^1;    //1: ¶Á³ö,0:Ð´Èë 
+   7          sbit E=P2^2;      //1:ÓÐÐ§,0:ÎÞÐ§
+   8          sbit key0=P1^0; 
+   9          sbit key1=P1^1; 
+  10          sbit key2=P1^2; 
+  11          sbit key3=P1^3; 
+  12          sbit key4=P1^4; 
+  13          sbit key5=P1^5;
+  14          sbit key6=P1^6; 
+  15          sbit key7=P1^7; 
+  16          sbit BEEP=P2^6;
+  17          uint sev=0; 
+  18          uint sev1=0; 
+  19          uint sev2=0; 
+  20          uint sev3=0; 
+  21          uint sev4=0;
+  22          uint m=0,i=0;
+  23          uint jhao=1,qhao=0,dhao=0;                              //ÅÅ¶Ó½ÐºÅ                                 //´°¿ÚÏ
+             -ûµÄºÅÂë 
+  24          uint jz=0;
+  25          uchar data test[]="Hello!";                    //³õÊ¼ÏÔÊ¾µÄ×Ö·û 
+  26          uchar data prompt2[]="No.00 come to No";     //1062µÚÒ»ÐÐÏÔÊ¾µÄ×Ö·û 
+  27          uchar data prompt3[]="0.window,Please!";     //1062µÚ¶þÐÐÏÔÊ¾µÄ×Ö·û 
+  28          uchar data prompt8[]="00 is left"; 
+  29          uchar data prompt9[]="All is 00"; 
+  30          uchar data prompt10[]="W1 - 00"; 
+  31          uchar data prompt11[]="W2 - 00";
+  32          uchar data prompt12[]="W3 - 00"; 
+  33          uchar data prompt13[]="W4 - 00"; 
+  34                                            
+  35          void intCon()  
+  36          {    
+  37   1          EA=0;        //¹Ø×ÜÖÐ¶Ï
+  38   1          SCON=0x50;   //0101 0000,SM0 SM1=01±íÊ¾Ñ¡Ôñ¹¤×÷·½Ê½1£»SM2 REN=01±íÊ¾´®ÐÐ¿Ú¶à»úÍ¨Ñ¶¿ØÖÆÎ»£¬´®ÐÐ¿ÚÔÊÐí½ÓÊ
+             -Õ£¨´ÓÍâ²¿½ÓÊÕÊý¾Ý£©
+  39   1          PCON=0X00;   //µçÔ´¿ØÖÆ¼Ä´æÆ÷ ×î¸ßÎ»ÎªSMOD£¬Îª0£¬±íÊ¾²¨ÌØÂÊ²»¼Ó±¶£¬Îª1£¬±íÊ¾²¨ÌØÂÊ¼Ó±¶
+  40   1          TMOD=0x20;   //0010 0000,GATE=0,ÒÔÔËÐÐ¿ØÖÆÎ»TRÆô¶¯¶¨Ê±Æ÷£»²ÉÓÃ¶¨Ê±1¹¤×÷·½Ê½2
+  41   1          TH1=0xfd;    //²¨ÌØÂÊ9600=2^smod*£¨11.05926*10^6£©/(32*12*(2^8-X))
+  42   1          TL1=0xfd;  
+  43   1          TR1=1;       //¼ÆÊýÆ÷¹¤×÷
+  44   1        } 
+  45          //
+  46           void delay(int n)       //ÑÓÊ±×Ó³ÌÐò 
+  47          { 
+  48   1      int k,j;  
+  49   1       for(k=0;k<=n;k++)  
+  50   1       for(j=0;j<=10;j++); 
+  51   1      } 
+  52          void delay1s(int n)     //ÑÓÊ±×Ó³ÌÐò
+C51 COMPILER V9.60.0.0   JIAOHAO                                                           07/16/2025 23:55:53 PAGE 2   
+
+  53           { 
+  54   1      int k,j;  
+  55   1       for(k=0;k<=n;k++)  
+  56   1       for(j=0;j<=120;j++); 
+  57   1      }  
+  58          void SPEAKER(uint x)   //·äÃùÆ÷³ÌÐò
+  59           {   
+  60   1      for(i=0;i<=200;i++)    
+  61   1       {        
+  62   2      delay(x);  
+  63   2       BEEP=~BEEP;  
+  64   2       }     
+  65   1       BEEP=1; }
+  66           /**************LCD³ÌÐò**********/
+  67           void delay1ms(unsigned int ms)   //ÑÓÊ±µÄÊ±¼ä
+  68          { 
+  69   1      uint k,j;  
+  70   1       for(k=0;k<ms;k++)   
+  71   1       for(j=0;j<100;j++); 
+  72   1      }
+  73           void LCD_w_com(unsigned com)  // Ð´ÈëÖ¸Áî 
+  74           {  
+  75   1      RW=0;  
+  76   1      RS=0;
+  77   1      E=1;  
+  78   1      P0=com; 
+  79   1      delay1ms(40);  
+  80   1      E=0; 
+  81   1      RW=1;
+  82   1      } 
+  83          void LCD_w_dat(uchar dat)   // Ð´ÈëÊý¾Ý 
+  84          { 
+  85   1      
+  86   1       RW=0; 
+  87   1       RS=1;  
+  88   1      E=1; 
+  89   1      P0=dat; 
+  90   1      delay1ms(40); 
+  91   1      E=0;  
+  92   1      RW=1; 
+  93   1      }  
+  94          void gotoxy(unsigned x,unsigned y)  {  
+  95   1       if(x==1)  
+  96   1      LCD_w_com(0x80+y); 
+  97   1       else 
+  98   1      LCD_w_com(0xC0+y); 
+  99   1      } 
+ 100          void clear_LCD(void) 
+ 101          { 
+ 102   1      LCD_w_com(0x01);       //ÇåÆÁÖ¸Áî  
+ 103   1      LCD_w_com(0x02);      // ¹â±ê¹éÎ»
+ 104   1      } 
+ 105          void init_LCD(void)      // ³õÊ¼»¯LCD 
+ 106          {  
+ 107   1      LCD_w_com(0x38);     // LCDÎªÁ½ÐÐÏÔÊ¾             
+ 108   1      LCD_w_com(0x0c);     // ÏÔÊ¾×Ö·û  ¹Ø±Õ¹â±ê 
+ 109   1      LCD_w_com(0x06);     // ÊäÈë·½Ê½ÉèÖÃ 
+ 110   1       gotoxy(1,0); 
+ 111   1       for(i=0;i<=5;i++)  
+ 112   1      {  
+ 113   2       LCD_w_dat(test[i]); 
+ 114   2       } 
+C51 COMPILER V9.60.0.0   JIAOHAO                                                           07/16/2025 23:55:53 PAGE 3   
+
+ 115   1      } 
+ 116          /*********½ÐºÅ»ú °´Ò»´ÎÒ»ºÅ¼ü±äÁ¿+1ª£×î´óÎª10*************/   
+ 117          void key()
+ 118          {         
+ 119   1        if(qhao>jhao)     
+ 120   1      {       
+ 121   2       SPEAKER(11); 
+ 122   2           delay(200);    
+ 123   2      SPEAKER(15); 
+ 124   2      clear_LCD();      
+ 125   2      
+ 126   2      sev++;   
+ 127   2      prompt2[3]=(jhao+1)/10+'0';               
+ 128   2      prompt2[4]=(jhao+1)%10+'0';      
+ 129   2      prompt3[0]=jz+'0';                
+ 130   2      gotoxy(1,0);      
+ 131   2      for(m=0;m<=15;m++)      
+ 132   2      {      
+ 133   3      LCD_w_dat(prompt2[m]);      
+ 134   3      }      
+ 135   2      gotoxy(2,0);      
+ 136   2      for(m=0;m<=15;m++)      
+ 137   2      {
+ 138   3      LCD_w_dat(prompt3[m]);     
+ 139   3       }         
+ 140   2       jhao++; 
+ 141   2      }
+ 142   1      }
+ 143          
+ 144          void k5()
+ 145          {
+ 146   1      clear_LCD();  
+ 147   1      dhao=qhao-jhao;
+ 148   1      prompt8[0]=dhao/10+'0';  
+ 149   1      prompt8[1]=dhao%10+'0';  
+ 150   1      gotoxy(1,0);  
+ 151   1      for(m=0;m<=9;m++)  
+ 152   1      {  
+ 153   2      LCD_w_dat(prompt8[m]);     
+ 154   2      }       
+ 155   1      }
+ 156          
+ 157          void k6()
+ 158           {     
+ 159   1      clear_LCD();   
+ 160   1      prompt9[7]=(sev)/10+'0';   
+ 161   1      prompt9[8]=(sev)%10+'0';   
+ 162   1      gotoxy(1,0);   
+ 163   1      for(m=0;m<=8;m++)   
+ 164   1      {   
+ 165   2      LCD_w_dat(prompt9[m]); 
+ 166   2      }  
+ 167   1      }
+ 168          
+ 169          void k7()
+ 170          {
+ 171   1      clear_LCD();        
+ 172   1      prompt10[5]=sev1/10+'0';    
+ 173   1      prompt10[6]=sev1%10+'0';    
+ 174   1      prompt11[5]=sev2/10+'0';    
+ 175   1      prompt11[6]=sev2%10+'0';    
+ 176   1      prompt12[5]=sev3/10+'0';    
+C51 COMPILER V9.60.0.0   JIAOHAO                                                           07/16/2025 23:55:53 PAGE 4   
+
+ 177   1      prompt12[6]=sev3%10+'0';    
+ 178   1      prompt13[5]=sev4/10+'0';    
+ 179   1      prompt13[6]=sev4%10+'0';     
+ 180   1      gotoxy(1,0);    
+ 181   1      for(m=0;m<=6;m++)    
+ 182   1      {    
+ 183   2      LCD_w_dat(prompt10[m]);    
+ 184   2      }        
+ 185   1      gotoxy(1,8);    
+ 186   1      for(m=0;m<=6;m++)    
+ 187   1      {    
+ 188   2      LCD_w_dat(prompt11[m]);    
+ 189   2      }    
+ 190   1      gotoxy(2,0);    
+ 191   1      for(m=0;m<=6;m++)    
+ 192   1      {    
+ 193   2      LCD_w_dat(prompt12[m]);    
+ 194   2      } 
+ 195   1       gotoxy(2,8);    
+ 196   1      for(m=0;m<=6;m++)    
+ 197   1      {    
+ 198   2      LCD_w_dat(prompt13[m]);    
+ 199   2      }    
+ 200   1      } 
+ 201          
+ 202           //¾ØÕó¼üÅÌÉ¨Ãèº¯Êý
+ 203          void matrixkeyscan()
+ 204          { 
+ 205   1        unsigned char temp; 
+ 206   1        P1=0xff; //ÏÈÏòP1 ¿ÚÐ´1£»¶Ë¿Ú¶Á×´Ì¬
+ 207   1        P1=0xf0; //ÁÐËÍdiµçÆ½£¬ÐÐËÍgaoµçÆ½
+ 208   1        temp=P1;
+ 209   1        if(temp!=0xf0)//ÅÐ¶ÏÊÇ·ñÓÐ¼ü°´ÏÂ£¬ÈôÓÐ¼ü°´ÏÂÔòtemp²»µÈÓÚ0xf0
+ 210   1        {
+ 211   2          delay(10);  // ·À¶¶¶¯
+ 212   2          if(temp!=0xf0)  
+ 213   2          {
+ 214   3            P1=0xef;  //É¨ÃèµÚÒ»ÐÐ
+ 215   3            temp=P1;
+ 216   3            switch(temp)
+ 217   3            {
+ 218   4              case(0xe7):{jz=1;sev1++; key();} ;break; //µÚÒ»ÐÐµÚÒ»ÁÐ
+ 219   4              case(0xeb):{jz=2;sev2++; key();} ;break; //µÚÒ»ÐÐµÚ¶þÁÐ
+ 220   4              case(0xed):{jz=3;sev3++; key();} ;break;  //µÚÒ»ÐÐµÚÈýÁÐ
+ 221   4              case(0xee):{jz=4;sev4++; key();} ;break;  //µÚÒ»ÐÐµÚËÄÁÐ
+ 222   4                
+ 223   4                   }
+ 224   3            P1=0xdf;
+ 225   3            temp=P1;
+ 226   3            switch(temp)   //É¨ÃèµÚ¶þÐÐ
+ 227   3            {
+ 228   4              case(0xd7):k5();break;  //µÚ¶þÐÐµÚÒ»ÁÐ
+ 229   4      
+ 230   4              case(0xdb):k6();break;  //µÚ¶þÐÐµÚ¶þÁÐ
+ 231   4      
+ 232   4              case(0xdd):k7();break;  //µÚ¶þÐÐµÚÈýÁÐ
+ 233   4              
+ 234   4            }
+ 235   3          }
+ 236   2        }
+ 237   1      } 
+ 238          void main() 
+C51 COMPILER V9.60.0.0   JIAOHAO                                                           07/16/2025 23:55:53 PAGE 5   
+
+ 239          { 
+ 240   1          intCon(); 
+ 241   1          clear_LCD();   
+ 242   1          init_LCD(); 
+ 243   1          jhao=0;
+ 244   1         while(1)  //Ò»Ö±Ö´ÐÐ
+ 245   1        {   
+ 246   2            
+ 247   2          matrixkeyscan(); 
+ 248   2          SBUF=jhao;  //½ÐºÅËÍ·¢ËÍ´æ´¢Æ÷  
+ 249   2          while(!TI);   //ÈôÒ»Ö¡Êý¾Ý·¢ËÍÍê±Ï,ÔòTI=1£¬ÔÚ½« TIÖÃÎª0£¬ÈÃÆä´¦ÓÚ½ÓÊÕ×´Ì¬  
+ 250   2          TI=0;     
+ 251   2            if(RI)   //Èô½ÓÊÕÍêÒ»Ö¡Êý¾Ý£¬ÔòRI=1
+ 252   2          {    
+ 253   3            RI=0;  //½«RIÖÃ0£¬ÈÃÆä´¦ÓÚ½ÓÊÕ×´Ì¬  
+ 254   3            qhao=SBUF;//È¡ºÅÊý´Ó½ÓÊÕ´æ´¢Æ÷ÖÐÈ¡µÃ  
+ 255   3          }   
+ 256   2         } 
+ 257   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1069    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =    116       1
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

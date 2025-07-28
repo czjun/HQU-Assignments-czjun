@@ -1,0 +1,181 @@
+#include <reg51.h>
+#include <intrins.h>
+#define uchar unsigned char
+#define uint unsigned int  
+sbit RS=P2^0; 
+sbit RW=P2^1; 
+sbit E=P2^2;                                     
+sbit K1=P1^0;
+sbit K2=P1^1;  
+uint m=0,i=0; 
+uchar data test[]="Welcome!";             //初始显示的字符 
+uchar data prompt1[]="Your No.is 00!";    //1062第一行显示的字符 
+uchar data prompt8[]="00 is left"; 
+uchar data prompt4[]="The queue is";      //1062第一行显示的字符 
+uchar data prompt5[]="full,please wait";  //1062第二行显示的字符 
+
+unsigned long qhao=1,dhao=1,jhao=0;    //分别为取到的人数，等待的人数 叫到的人数 
+void intCon() 
+ {  
+	 EA=0;	   //关总中断
+	 SCON=0x50;    //0101 0000,SM0 SM1=01表示选择工作方式1；SM2 REN=01表示串行口多机通讯控制位，串行口允许接收（从外部接收数据）
+	 PCON=0X00;   //电源控制寄存器 最高位为SMOD，为0，表示波特率不加倍，为1，表示波特率加倍
+	 TMOD=0x20;   	//0010 0000,GATE=0,以运行控制位TR启动定时器；采用定时1工作方式2
+	 TH1=0xfd;    //波特率为9600bit/s
+	 TL1=0xfd;  
+ 	 TR1=1;  	 //计数器工作
+ } 
+void delay(int n)   //延时程序 
+{ 
+int k,j;   
+for(k=0;k<=n;k++)   
+for(j=0;j<=10;j++); 
+} 
+void delay1s(int n)   //延时程序 
+{
+ int k,j;   
+for(k=0;k<=n;k++)   
+for(j=0;j<=120;j++); 
+}       
+  /**************LCD程序**********/
+ void delay1ms(unsigned int ms)   //延时的时间
+{ 
+uint k,j;  
+ for(k=0;k<ms;k++)   
+ for(j=0;j<100;j++); 
+}
+ void LCD_w_com(unsigned com)  // 写入指令 
+ {  
+RW=0;  
+RS=0;
+E=1;  
+P0=com; 
+delay1ms(40);  
+E=0; 
+RW=1;
+} 
+void LCD_w_dat(uchar dat)   // 写入数据 
+{ 
+
+	RW=0; 
+	RS=1;  
+	E=1; 
+	P0=dat; 
+	delay1ms(40); 
+	E=0;  
+	RW=1; 
+}  
+void gotoxy(unsigned x,unsigned y)  {  
+ if(x==1)  
+LCD_w_com(0x80+y); 
+ else 
+LCD_w_com(0xC0+y); 
+} 
+void clear_LCD(void) 
+{ 
+LCD_w_com(0x01);       //清屏指令  
+LCD_w_com(0x02);      // 光标归位
+} 
+void init_LCD(void)      // 初始化LCD 
+{  
+LCD_w_com(0x38);     // LCD为两行显示             
+LCD_w_com(0x0c);     // 显示字符  关闭光标 
+LCD_w_com(0x06);     // 输入方式设置 
+ gotoxy(1,0); 
+ for(i=0;i<=7;i++)  
+{  
+ LCD_w_dat(test[i]); 
+ } 
+} 
+
+// 判断取号键被按下
+void panduan_01() 	
+{  
+   if(K1==0)  
+    { delay(10);    //防抖
+      if(K1==0)   
+			{    
+          if(qhao>99)  
+					{
+						EA=0;  
+						delay1s(5000);      
+						clear_LCD();      
+						gotoxy(1,2);   
+					for(m=0;m<=11;m++)   
+					{    
+						LCD_w_dat(prompt4[m]);      
+					}    
+					gotoxy(2,0);   
+					for(m=0;m<=15;m++)   
+					{    
+						LCD_w_dat(prompt5[m]);  //提示队列已满      
+					}     
+					} 	
+					else
+					{
+						clear_LCD();     
+						prompt1[11]=(qhao)/10+'0';       
+						prompt1[12]=(qhao)%10+'0';    
+						qhao++;    
+						gotoxy(1,0);  
+						for(m=0;m<=13;m++)   
+						{   
+							LCD_w_dat(prompt1[m]); //"Your No.is 00!"; 
+						}   
+					} 
+					dhao=qhao-jhao;    //等待的人数=人数-叫的人 
+					prompt8[0]=(dhao-1)/10+'0';  
+					prompt8[1]=(dhao-1)%10+'0';  
+					gotoxy(2,0);				
+					for(m=0;m<=9;m++)  
+					{  
+						LCD_w_dat(prompt8[m]);     
+					} 
+			}
+	}
+	 while(K1==0);   
+	
+}
+//判断等待的人数键被按下 ，按下显示等待的人数，松开后显示取到的号码 
+void panduan_02() 
+{   
+   if(K2==0)  
+    { delay(10);   //防抖
+      if(K2==0)   
+			{ 
+					dhao=qhao-jhao;    //等待的人数=人数-叫的人
+					clear_LCD();  
+					prompt8[0]=dhao/10+'0';  
+					prompt8[1]=dhao%10+'0';  
+					gotoxy(2,0);				
+				for(m=0;m<=9;m++)  
+				{  
+					LCD_w_dat(prompt8[m]);     
+				}    
+
+	   }  
+	 }   
+	
+}  
+void main(void) 
+{ 
+    clear_LCD();       
+		init_LCD();
+    intCon(); 
+		jhao=0;
+    while(1)  
+     {   
+		if(K1==0)  
+	    panduan_01();
+			SBUF=qhao;		//取号送发送存储器
+		while(!TI);   	//若一帧数据发送完毕,则TI=1，在将 TI置为0，让其处于接收状态
+		TI=0;
+		if(RI) //若接收完一帧数据，则RI=1  
+	    {    
+		    RI=0; //将RI置0，让其处于接收状态   
+		    jhao=SBUF;  //叫号数从接收存储器中取得  
+	    }		
+		 if(K2==0)	   
+				panduan_02();  	   
+	   } 	   
+}

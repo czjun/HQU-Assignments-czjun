@@ -1,0 +1,212 @@
+C51 COMPILER V9.60.0.0   QUHAO                                                             07/16/2025 23:42:09 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE QUHAO
+OBJECT MODULE PLACED IN .\Objects\quhao.obj
+COMPILER INVOKED BY: E:\Keil_v5\C51\BIN\C51.EXE quhao.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\quh
+                    -ao.lst) TABS(2) OBJECT(.\Objects\quhao.obj)
+
+line level    source
+
+   1          #include <reg51.h>
+   2          #include <intrins.h>
+   3          #define uchar unsigned char
+   4          #define uint unsigned int  
+   5          sbit RS=P2^0; 
+   6          sbit RW=P2^1; 
+   7          sbit E=P2^2;                                     
+   8          sbit K1=P1^0;
+   9          sbit K2=P1^1;  
+  10          uint m=0,i=0; 
+  11          uchar data test[]="Welcome!";             //³õÊ¼ÏÔÊ¾µÄ×Ö·û 
+  12          uchar data prompt1[]="Your No.is 00!";    //1062µÚÒ»ÐÐÏÔÊ¾µÄ×Ö·û 
+  13          uchar data prompt8[]="00 is left"; 
+  14          uchar data prompt4[]="The queue is";      //1062µÚÒ»ÐÐÏÔÊ¾µÄ×Ö·û 
+  15          uchar data prompt5[]="full,please wait";  //1062µÚ¶þÐÐÏÔÊ¾µÄ×Ö·û 
+  16          
+  17          unsigned long qhao=1,dhao=1,jhao=0;    //·Ö±ðÎªÈ¡µ½µÄÈËÊý£¬µÈ´ýµÄÈËÊý ½Ðµ½µÄÈËÊý 
+  18          void intCon() 
+  19           {  
+  20   1         EA=0;     //¹Ø×ÜÖÐ¶Ï
+  21   1         SCON=0x50;    //0101 0000,SM0 SM1=01±íÊ¾Ñ¡Ôñ¹¤×÷·½Ê½1£»SM2 REN=01±íÊ¾´®ÐÐ¿Ú¶à»úÍ¨Ñ¶¿ØÖÆÎ»£¬´®ÐÐ¿ÚÔÊÐí½ÓÊ
+             -Õ£¨´ÓÍâ²¿½ÓÊÕÊý¾Ý£©
+  22   1         PCON=0X00;   //µçÔ´¿ØÖÆ¼Ä´æÆ÷ ×î¸ßÎ»ÎªSMOD£¬Îª0£¬±íÊ¾²¨ÌØÂÊ²»¼Ó±¶£¬Îª1£¬±íÊ¾²¨ÌØÂÊ¼Ó±¶
+  23   1         TMOD=0x20;     //0010 0000,GATE=0,ÒÔÔËÐÐ¿ØÖÆÎ»TRÆô¶¯¶¨Ê±Æ÷£»²ÉÓÃ¶¨Ê±1¹¤×÷·½Ê½2
+  24   1         TH1=0xfd;    //²¨ÌØÂÊÎª9600bit/s
+  25   1         TL1=0xfd;  
+  26   1         TR1=1;    //¼ÆÊýÆ÷¹¤×÷
+  27   1       } 
+  28          void delay(int n)   //ÑÓÊ±³ÌÐò 
+  29          { 
+  30   1      int k,j;   
+  31   1      for(k=0;k<=n;k++)   
+  32   1      for(j=0;j<=10;j++); 
+  33   1      } 
+  34          void delay1s(int n)   //ÑÓÊ±³ÌÐò 
+  35          {
+  36   1       int k,j;   
+  37   1      for(k=0;k<=n;k++)   
+  38   1      for(j=0;j<=120;j++); 
+  39   1      }       
+  40            /**************LCD³ÌÐò**********/
+  41           void delay1ms(unsigned int ms)   //ÑÓÊ±µÄÊ±¼ä
+  42          { 
+  43   1      uint k,j;  
+  44   1       for(k=0;k<ms;k++)   
+  45   1       for(j=0;j<100;j++); 
+  46   1      }
+  47           void LCD_w_com(unsigned com)  // Ð´ÈëÖ¸Áî 
+  48           {  
+  49   1      RW=0;  
+  50   1      RS=0;
+  51   1      E=1;  
+  52   1      P0=com; 
+  53   1      delay1ms(40);  
+C51 COMPILER V9.60.0.0   QUHAO                                                             07/16/2025 23:42:09 PAGE 2   
+
+  54   1      E=0; 
+  55   1      RW=1;
+  56   1      } 
+  57          void LCD_w_dat(uchar dat)   // Ð´ÈëÊý¾Ý 
+  58          { 
+  59   1      
+  60   1        RW=0; 
+  61   1        RS=1;  
+  62   1        E=1; 
+  63   1        P0=dat; 
+  64   1        delay1ms(40); 
+  65   1        E=0;  
+  66   1        RW=1; 
+  67   1      }  
+  68          void gotoxy(unsigned x,unsigned y)  {  
+  69   1       if(x==1)  
+  70   1      LCD_w_com(0x80+y); 
+  71   1       else 
+  72   1      LCD_w_com(0xC0+y); 
+  73   1      } 
+  74          void clear_LCD(void) 
+  75          { 
+  76   1      LCD_w_com(0x01);       //ÇåÆÁÖ¸Áî  
+  77   1      LCD_w_com(0x02);      // ¹â±ê¹éÎ»
+  78   1      } 
+  79          void init_LCD(void)      // ³õÊ¼»¯LCD 
+  80          {  
+  81   1      LCD_w_com(0x38);     // LCDÎªÁ½ÐÐÏÔÊ¾             
+  82   1      LCD_w_com(0x0c);     // ÏÔÊ¾×Ö·û  ¹Ø±Õ¹â±ê 
+  83   1      LCD_w_com(0x06);     // ÊäÈë·½Ê½ÉèÖÃ 
+  84   1       gotoxy(1,0); 
+  85   1       for(i=0;i<=7;i++)  
+  86   1      {  
+  87   2       LCD_w_dat(test[i]); 
+  88   2       } 
+  89   1      } 
+  90          
+  91          // ÅÐ¶ÏÈ¡ºÅ¼ü±»°´ÏÂ
+  92          void panduan_01()   
+  93          {  
+  94   1         if(K1==0)  
+  95   1          { delay(10);    //·À¶¶
+  96   2            if(K1==0)   
+  97   2            {    
+  98   3                if(qhao>99)  
+  99   3                {
+ 100   4                  EA=0;  
+ 101   4                  delay1s(5000);      
+ 102   4                  clear_LCD();      
+ 103   4                  gotoxy(1,2);   
+ 104   4                for(m=0;m<=11;m++)   
+ 105   4                {    
+ 106   5                  LCD_w_dat(prompt4[m]);      
+ 107   5                }    
+ 108   4                gotoxy(2,0);   
+ 109   4                for(m=0;m<=15;m++)   
+ 110   4                {    
+ 111   5                  LCD_w_dat(prompt5[m]);  //ÌáÊ¾¶ÓÁÐÒÑÂú      
+ 112   5                }     
+ 113   4                }   
+ 114   3                else
+ 115   3                {
+C51 COMPILER V9.60.0.0   QUHAO                                                             07/16/2025 23:42:09 PAGE 3   
+
+ 116   4                  clear_LCD();     
+ 117   4                  prompt1[11]=(qhao)/10+'0';       
+ 118   4                  prompt1[12]=(qhao)%10+'0';    
+ 119   4                  qhao++;    
+ 120   4                  gotoxy(1,0);  
+ 121   4                  for(m=0;m<=13;m++)   
+ 122   4                  {   
+ 123   5                    LCD_w_dat(prompt1[m]); //"Your No.is 00!"; 
+ 124   5                  }   
+ 125   4                } 
+ 126   3                dhao=qhao-jhao;    //µÈ´ýµÄÈËÊý=ÈËÊý-½ÐµÄÈË 
+ 127   3                prompt8[0]=(dhao-1)/10+'0';  
+ 128   3                prompt8[1]=(dhao-1)%10+'0';  
+ 129   3                gotoxy(2,0);        
+ 130   3                for(m=0;m<=9;m++)  
+ 131   3                {  
+ 132   4                  LCD_w_dat(prompt8[m]);     
+ 133   4                } 
+ 134   3            }
+ 135   2        }
+ 136   1         while(K1==0);   
+ 137   1        
+ 138   1      }
+ 139          //ÅÐ¶ÏµÈ´ýµÄÈËÊý¼ü±»°´ÏÂ £¬°´ÏÂÏÔÊ¾µÈ´ýµÄÈËÊý£¬ËÉ¿ªºóÏÔÊ¾È¡µ½µÄºÅÂë 
+ 140          void panduan_02() 
+ 141          {   
+ 142   1         if(K2==0)  
+ 143   1          { delay(10);   //·À¶¶
+ 144   2            if(K2==0)   
+ 145   2            { 
+ 146   3                dhao=qhao-jhao;    //µÈ´ýµÄÈËÊý=ÈËÊý-½ÐµÄÈË
+ 147   3                clear_LCD();  
+ 148   3                prompt8[0]=dhao/10+'0';  
+ 149   3                prompt8[1]=dhao%10+'0';  
+ 150   3                gotoxy(2,0);        
+ 151   3              for(m=0;m<=9;m++)  
+ 152   3              {  
+ 153   4                LCD_w_dat(prompt8[m]);     
+ 154   4              }    
+ 155   3      
+ 156   3           }  
+ 157   2         }   
+ 158   1        
+ 159   1      }  
+ 160          void main(void) 
+ 161          { 
+ 162   1          clear_LCD();       
+ 163   1          init_LCD();
+ 164   1          intCon(); 
+ 165   1          jhao=0;
+ 166   1          while(1)  
+ 167   1           {   
+ 168   2          if(K1==0)  
+ 169   2            panduan_01();
+ 170   2            SBUF=qhao;    //È¡ºÅËÍ·¢ËÍ´æ´¢Æ÷
+ 171   2          while(!TI);     //ÈôÒ»Ö¡Êý¾Ý·¢ËÍÍê±Ï,ÔòTI=1£¬ÔÚ½« TIÖÃÎª0£¬ÈÃÆä´¦ÓÚ½ÓÊÕ×´Ì¬
+ 172   2          TI=0;
+ 173   2          if(RI) //Èô½ÓÊÕÍêÒ»Ö¡Êý¾Ý£¬ÔòRI=1  
+ 174   2            {    
+ 175   3              RI=0; //½«RIÖÃ0£¬ÈÃÆä´¦ÓÚ½ÓÊÕ×´Ì¬   
+ 176   3              jhao=SBUF;  //½ÐºÅÊý´Ó½ÓÊÕ´æ´¢Æ÷ÖÐÈ¡µÃ  
+ 177   3            }   
+C51 COMPILER V9.60.0.0   QUHAO                                                             07/16/2025 23:42:09 PAGE 4   
+
+ 178   2           if(K2==0)     
+ 179   2              panduan_02();      
+ 180   2           }     
+ 181   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    779    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     81    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,11 @@
+DXP格式          Altium designer 软件打开
+protel99格式   protel99SE 软件打开 
+PDF格式           PDF 软件打开 
+Word格式         Word 或用WPS 软件打开 
+
+4种格式的原理图都内容是一样的  只是打开方式不同
+
+请看原理图焊接，不要看仿真图焊接。
+
+如果论文里面的原理图和原理图文件夹内的图不一样的话，请大家以原理图文件夹内的为准。
+若需要设计PCB，则按照PCB图，利用Altium designer 软件设计（照着PCB图布线即可）
